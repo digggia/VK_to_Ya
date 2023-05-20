@@ -1,6 +1,6 @@
 import requests
 import time
-
+import os
 
 class YandexDisk:
     def __init__(self):
@@ -12,7 +12,7 @@ class YandexDisk:
         owner_id = int(input("Enter owner_id:"))
         params = {
             'owner_id': owner_id,
-            'access_token': '+++++++++++++++++++++++++++++++++++++++++++++++++++',
+            'access_token': 'vk1.a.-haKCVFit-zFNbRVOEQ21KCZv7Orl2txenO_7Vnw4V672E6ULxstMuZHzq7kJE5gNutd13KnaHtFM5MeuVrHypLVG4776aQVuzhjT2O224oBEBY-tdqy0BzlJ7ET4_zNL64ArLpZ5QfWNkCtID-DfXh8lptDEI7Y-mmJsa-xYGGb8Sw5GxG6CFs07KmxZUxvlCYUceA_c144I3laIH2gcw',
             'v': '5.131',
             'album_id': 'wall',
             'count': self.count,
@@ -89,7 +89,8 @@ class YandexDisk:
     def create_path(self):
         url = 'https://cloud-api.yandex.net/v1/disk/resources'
         headers = self.get_headers()
-        path_name = 'Test_Netology/' + time.strftime("%d-%m-%Y_%H_%M_%S", time.localtime()) + '/'
+        # path_name = 'Test_Netology/' + time.strftime("%d-%m-%Y_%H_%M_%S", time.localtime()) + '/'
+        path_name = time.strftime("%d-%m-%Y_%H_%M_%S", time.localtime()) + '/'
         response = requests.put(f'{url}?path={path_name}', headers=headers)
         return str(path_name)
 
