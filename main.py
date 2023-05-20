@@ -1,18 +1,21 @@
-import requests
-import time
 import os
 
-class YandexDisk:
+import requests
+import time
+import json
+
+class Download_from_VK:
     def __init__(self):
-        self.token = input("Enter Yandex token:")
         self.count = 5
 
     def get_json(self):
         URL = 'https://api.vk.com/method/photos.get'
-        owner_id = int(input("Enter owner_id:"))
+        owner_id = int(input("Enter photo owner VK_id:"))
+        with open('VK_token_here', 'r') as file:
+            vk_token = file.read()
         params = {
             'owner_id': owner_id,
-            'access_token': 'vk1.a.-haKCVFit-zFNbRVOEQ21KCZv7Orl2txenO_7Vnw4V672E6ULxstMuZHzq7kJE5gNutd13KnaHtFM5MeuVrHypLVG4776aQVuzhjT2O224oBEBY-tdqy0BzlJ7ET4_zNL64ArLpZ5QfWNkCtID-DfXh8lptDEI7Y-mmJsa-xYGGb8Sw5GxG6CFs07KmxZUxvlCYUceA_c144I3laIH2gcw',
+            'access_token': vk_token,
             'v': '5.131',
             'album_id': 'wall',
             'count': self.count,
@@ -63,9 +66,24 @@ class YandexDisk:
             json_response.append(item_dict)
 
             with open('json_data_file.json', 'w') as file:
-                file.writelines(str(json_response))
+                json.dump(json_response, file)
 
         return json_response
+
+    def download_file(self):
+        photo_json = self.choose_photo()
+
+        for i in range(len(photo_json)):
+            filename = photo_json[i]['new_photo_name']+ '.jpg'
+            response_photo = requests.get(photo_json[i]['item_url'])
+
+            with open(filename, 'wb') as file:
+                file.write(response_photo.content)
+                print(f'{file.name} downloaded form VK ({round(((i + 1) * 100) / len(photo_json))}%)')
+
+class Upload_To_Ya:
+    def __init__(self):
+        self.token = input("Enter Yandex token:")
 
     def get_headers(self):
         return {
@@ -94,23 +112,24 @@ class YandexDisk:
         response = requests.put(f'{url}?path={path_name}', headers=headers)
         return str(path_name)
 
+    # @classmethod
     def upload_file(self):
-        photo_json = self.choose_photo()
+        with open('json_data_file.json') as file:
+            photo_json = json.loads(file.read())
+
         path_for_upload = self.create_path()
 
         for i in range(len(photo_json)):
             filename = photo_json[i]['new_photo_name']+ '.jpg'
-            response_photo = requests.get(photo_json[i]['item_url'])
 
-            with open(filename, 'wb') as file:
-                file.write(response_photo.content)
-                disk_file_path = path_for_upload + photo_json[i]['new_photo_name']
+            with open(filename, 'r') as file:
+                disk_file_path = path_for_upload + filename
                 data = self.get_upload_link(disk_file_path)
                 url = data.get('href')
                 response = requests.put(url=url, data=open(filename, 'rb'))
 
                 if response.status_code == 201:
-                    print(f'{i+1} files uploaded ({round(((i+1)*100)/len(photo_json))}%)')
+                    print(f'{file.name} uploaded to Ya ({round(((i + 1) * 100) / len(photo_json))}%)')
 
         json_data = 'json_data_file.json'
         disk_json_path = path_for_upload + json_data
@@ -118,5 +137,6 @@ class YandexDisk:
         url = data.get('href')
         response_json = requests.put(url=url, data=open(json_data, 'rb'))
 
-ya = YandexDisk()
-ya.upload_file ()
+Download_from_VK().download_file()
+
+Upload_To_Ya().upload_file()
